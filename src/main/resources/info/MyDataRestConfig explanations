@@ -1,0 +1,73 @@
+1. Declaratia clasei:
+~~
+    @Configuration
+    public class MyDataRestConfig implements RepositoryRestConfigurer {
+~~
+    Se definește o clasă numită MyDataRestConfig, care este adnotată cu @Configuration și implementează interfața RepositoryRestConfigurer.
+    Acest lucru indică faptul că această clasă este destinată configuratiei aplicatiei Spring si va fi rulata prima in momentul pornirii
+    serviciului de back-end.
+
+2. Declaratia proprietatilor clasei
+~~
+    private EntityManager entityManager;
+~~
+    Acest obiect ne permite sa interactionam cu baza de date pentru a putea configura modul de mapare a datelor transmise prin query (entity)
+    la DTO-urile standardizate prin adnotarea interfetelor cu @RepositoryRestResource.
+
+3. Constructor
+~~
+    @Autowired
+    public MyDataRestConfig(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+~~
+    Constructorul primește ca parametru un EntityManager și utilizează adnotarea @Autowired pentru a injecta automat
+    o instanță de EntityManager la crearea unui obiect al clasei.
+
+4. Metoda suprascrisa
+~~
+    @Override
+    public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
+~~
+    Această metodă este o suprascriere a unei metode definite în interfața RepositoryRestConfigurer.
+    Este utilizată pentru a configura comportamentul Spring Data REST.
+
+5. Lista de requesturi HTTP nesuportate
+~~
+    HttpMethod[] theUnsupportedActions = {HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE};
+~~
+    Această linie definește o lista numită theUnsupportedActions care conține metodele HTTP (PUT, POST și DELETE)
+    care sunt marcate ca fiind neacceptate sau dezactivate.
+
+6. Apelul metodei de disable
+~~
+    disableHttpMethods(Product.class, config, theUnsupportedActions);
+    disableHttpMethods(ProductCategory.class, config, theUnsupportedActions);
+    disableHttpMethods(State.class, config, theUnsupportedActions);
+    disableHttpMethods(Country.class, config, theUnsupportedActions);
+~~
+    Aceste linii apelează metoda disableHttpMethods pentru mai multe clase (Product, ProductCategory, State și Country)
+    pentru a dezactiva metodele HTTP specificate (PUT, POST și DELETE) pentru aceste clase în configurația Spring Data REST.
+
+7. Metoda privata de disable
+~~
+    private void disableHttpMethods(Class theClass, RepositoryRestConfiguration config, HttpMethod[] theUnsupportedActions) {
+        config.getExposureConfiguration()
+                .forDomainType(theClass)
+                .withItemExposure((metadata, httpMethods) -> httpMethods.disable(theUnsupportedActions))
+                .withCollectionExposure((metadata, httpMethods) -> httpMethods.disable(theUnsupportedActions));
+    }
+~~
+    Aceasta acceptă trei parametri:
+        theClass (un tip de clasă),
+        config (o instanță RepositoryRestConfiguration)
+        theUnsupportedActions (o matrice de metode HTTP).
+
+    Această metodă configurează expunerea tipurilor de domenii (entități) și
+    dezactivează metodele HTTP specificate atât pentru expunerea elementelor,
+    cât și pentru cea a colecțiilor în configurația Spring Data REST.
+
+    Pe scurt, acest cod definește o clasă de configurare care utilizează Spring Data REST pentru a configura
+    și personaliza comportamentul anumitor metode HTTP pentru anumite clase de entități din aplicație.
+
+    Acesta restricționează operațiunile PUT, POST și DELETE pentru entitățile Product, ProductCategory, State și Country.
